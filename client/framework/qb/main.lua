@@ -49,9 +49,12 @@ function Framework.IsPlayerAllowed(citizenid)
 end
 
 function Framework.GetRankInputValues(type)
-    local grades = QBCore.Shared.Jobs[client.job.name].grades
+    local JOBS = exports.qbx_core:GetJobs()
+    local GANGS = exports.qbx_core:GetGangs()
+
+    local grades = JOBS[client.job.name].grades
     if type == "gang" then
-        grades = QBCore.Shared.Gangs[client.gang.name].grades
+        grades = GANGS[client.gang.name].grades
     end
     return getRankInputValues(grades)
 end
