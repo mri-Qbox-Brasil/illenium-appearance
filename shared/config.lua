@@ -17,11 +17,11 @@ Config.AsynchronousLoading = false -- Change this to false if you want the NUI d
 Config.UseTarget = false
 
 Config.TextUIOptions = {
-    position = "left-center"
+    position = "right-center"
 }
 
 Config.NotifyOptions = {
-    position = "top-right"
+    position = "center-right"
 }
 
 Config.OutfitCodeLength = 10
@@ -36,7 +36,7 @@ Config.EnablePedsForPlayerOutfitRooms = true
 Config.EnablePedMenu = true
 Config.PedMenuGroup = "group.admin"
 
-Config.EnableJobOutfitsCommand = false -- Enables /joboutfits and /gangoutfits commands
+Config.EnableJobOutfitsCommand = true -- Enables /joboutfits and /gangoutfits commands
 
 Config.ShowNearestShopOnly = false
 Config.HideRadar = false -- Hides the minimap while the appearance menu is open
@@ -51,7 +51,7 @@ Config.TrackerClothingOptions = {
 }
 
 Config.NewCharacterSections = {
-    Ped = true,
+    Ped = false, -- mur4i (desativado para servers BR)
     HeadBlend = true,
     FaceFeatures = true,
     HeadOverlays = true,
@@ -64,10 +64,10 @@ Config.GenderBasedOnPed = true
 
 Config.AlwaysKeepProps = false
 
-Config.PersistUniforms = false -- Keeps Job / Gang Outfits on player reconnects / logout
+Config.PersistUniforms = true -- Keeps Job / Gang Outfits on player reconnects / logout
 Config.OnDutyOnlyClothingRooms = false -- Set to `true` to make the clothing rooms accessible only to players who are On Duty
 
-Config.BossManagedOutfits = false -- Allows Job / Gang bosses to manage their own job / gang outfits
+Config.BossManagedOutfits = true -- Allows Job / Gang bosses to manage their own job / gang outfits
 
 Config.ReloadSkinCooldown = 5000
 
@@ -100,31 +100,31 @@ Config.Aces = {} -- list of ace permissions used for blacklisting
 Config.Blips = {
     ["clothing"] = {
         Show = true,
-        Sprite = 366,
-        Color = 47,
-        Scale = 0.7,
-        Name = "Clothing Store",
+        Sprite = 73,
+        Color = 0,
+        Scale = 0.6,
+        Name = "Loja de Roupas",
     },
     ["barber"] = {
         Show = true,
         Sprite = 71,
         Color = 0,
-        Scale = 0.7,
-        Name = "Barber",
+        Scale = 0.6,
+        Name = "Barbearia",
     },
     ["tattoo"] = {
         Show = true,
         Sprite = 75,
         Color = 4,
-        Scale = 0.7,
-        Name = "Tattoo Shop",
+        Scale = 0.6,
+        Name = "Tatuagens",
     },
     ["surgeon"] = {
         Show = true,
         Sprite = 102,
         Color = 4,
-        Scale = 0.7,
-        Name = "Plastic Surgeon",
+        Scale = 0.6,
+        Name = "Cirurgia Plástica",
     }
 }
 
@@ -565,16 +565,8 @@ Config.ClothingRooms = {
         rotation = 45,
         usePoly = false,
         points = {
-            vector3(460.41918945312, -993.11444091797, 30.69),
-            vector3(449.39508056641, -993.60614013672, 30.69),
-            vector3(449.88696289062, -990.23779296875, 30.69),
-            vector3(450.97882080078, -989.71411132812, 30.69),
-            vector3(451.0325012207, -987.89904785156, 30.69),
-            vector3(453.47863769531, -987.76928710938, 30.69),
-            vector3(454.35513305664, -988.46459960938, 30.69),
-            vector3(460.4231262207, -987.94573974609, 30.69)
         }
-    }
+    },
 }
 
 
