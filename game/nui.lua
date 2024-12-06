@@ -37,7 +37,7 @@ RegisterNUICallback("appearance_change_model", function(model, cb)
 
     SetEntityHeading(cache.ped, client.getHeading())
     SetEntityInvincible(playerPed, true)
-    TaskStandStill(playerPed, -1)
+    -- TaskStandStill(playerPed, -1)
 
     cb({
         appearanceSettings = client.getAppearanceSettings(),

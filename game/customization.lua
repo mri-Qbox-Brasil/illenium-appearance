@@ -385,41 +385,60 @@ local isCameraInterpolating
 local currentCamera
 local cameraHandle
 local function setCamera(key)
-    if not isCameraInterpolating then
-        if key ~= "current" then
-            currentCamera = key
-        end
+    if isCameraInterpolating then return end -- Evitar cliques múltiplos
 
-        local coords, point = table.unpack(constants.CAMERAS[currentCamera])
-        local reverseFactor = reverseCamera and -1 or 1
+    if key ~= "current" then
+        currentCamera = key
+    end
 
-        if cameraHandle then
-            local camCoords = GetOffsetFromEntityInWorldCoords(cache.ped, coords.x * reverseFactor, coords.y * reverseFactor, coords.z * reverseFactor)
-            local camPoint = GetOffsetFromEntityInWorldCoords(cache.ped, point.x, point.y, point.z)
-            local tmpCamera = CreateCameraWithParams("DEFAULT_SCRIPTED_CAMERA", camCoords.x, camCoords.y, camCoords.z, 0.0, 0.0, 0.0, 49.0, false, 0)
+    local cameraConfig = constants.CAMERAS[currentCamera]
+    if not cameraConfig then return end -- Garantir que a câmera existe
 
-            PointCamAtCoord(tmpCamera, camPoint.x, camPoint.y, camPoint.z)
-            SetCamActiveWithInterp(tmpCamera, cameraHandle, 1000, 1, 1)
+    local coords, point = table.unpack(cameraConfig)
+    local reverseFactor = reverseCamera and -1 or 1
 
-            isCameraInterpolating = true
+    -- Obter o heading atual do ped
+    local pedHeading = GetEntityHeading(cache.ped)
 
-            CreateThread(function()
-                repeat Wait(500)
-                until not IsCamInterpolating(cameraHandle) and IsCamActive(tmpCamera)
-                DestroyCam(cameraHandle, false)
-                cameraHandle = tmpCamera
-                isCameraInterpolating = false
-            end)
-        else
-            local camCoords = GetOffsetFromEntityInWorldCoords(cache.ped, coords.x, coords.y, coords.z)
-            local camPoint = GetOffsetFromEntityInWorldCoords(cache.ped, point.x, point.y, point.z)
-            cameraHandle = CreateCameraWithParams("DEFAULT_SCRIPTED_CAMERA", camCoords.x, camCoords.y, camCoords.z, 0.0, 0.0, 0.0, 49.0, false, 0)
+    -- Calcular posição da câmera com o reverseFactor aplicado
+    local camCoords = GetOffsetFromEntityInWorldCoords(
+        cache.ped, 
+        coords.x * reverseFactor, 
+        coords.y * reverseFactor, 
+        coords.z
+    )
 
-            PointCamAtCoord(cameraHandle, camPoint.x, camPoint.y, camPoint.z)
-            SetCamActive(cameraHandle, true)
-        end
+    -- Calcular ponto focal SEM o reverseFactor para manter o foco na face
+    local camPoint = GetOffsetFromEntityInWorldCoords(
+        cache.ped, 
+        point.x, 
+        point.y, 
+        point.z
+    )
+
+    if cameraHandle then
+        local tmpCamera = CreateCameraWithParams("DEFAULT_SCRIPTED_CAMERA", camCoords.x, camCoords.y, camCoords.z, 0.0, 0.0, pedHeading, 49.0, false, 0)
+        PointCamAtCoord(tmpCamera, camPoint.x, camPoint.y, camPoint.z)
+        SetCamActiveWithInterp(tmpCamera, cameraHandle, 1000, 1, 1)
+
+        isCameraInterpolating = true
+
+        CreateThread(function()
+            repeat Wait(500)
+            until not IsCamInterpolating(cameraHandle) and IsCamActive(tmpCamera)
+            DestroyCam(cameraHandle, false)
+            cameraHandle = tmpCamera
+            isCameraInterpolating = false
+        end)
+    else
+        cameraHandle = CreateCameraWithParams("DEFAULT_SCRIPTED_CAMERA", camCoords.x, camCoords.y, camCoords.z, 0.0, 0.0, pedHeading, 49.0, false, 0)
+        PointCamAtCoord(cameraHandle, camPoint.x, camPoint.y, camPoint.z)
+        SetCamActive(cameraHandle, true)
     end
 end
+
+
+
 client.setCamera = setCamera
 
 function client.rotateCamera(direction)
@@ -459,8 +478,9 @@ local function pedTurn(ped, angle)
     reverseCamera = not reverseCamera
     local sequenceTaskId = OpenSequenceTask()
     if sequenceTaskId then
-        TaskGoStraightToCoord(0, playerCoords.x, playerCoords.y, playerCoords.z, 8.0, -1, GetEntityHeading(ped) - angle, 0.1)
-        TaskStandStill(0, -1)
+        -- TaskGoStraightToCoord(0, playerCoords.x, playerCoords.y, playerCoords.z, 8.0, -1, GetEntityHeading(ped) - angle, 0.5)
+        SetEntityHeading(ped, GetEntityHeading(ped) - angle)
+        -- TaskStandStill(0, -1)
         CloseSequenceTask(sequenceTaskId)
         ClearPedTasks(ped)
         TaskPerformSequence(ped, sequenceTaskId)
@@ -535,8 +555,6 @@ function client.getHeading() return playerHeading end
 
 local callback
 function client.startPlayerCustomization(cb, conf)
-    repeat Wait(0) until IsScreenFadedIn() and not IsPlayerTeleportActive() and not IsPlayerSwitchInProgress()
-
     playerAppearance = client.getPedAppearance(cache.ped)
     playerCoords = GetEntityCoords(cache.ped, true)
     playerHeading = GetEntityHeading(cache.ped)
@@ -553,7 +571,10 @@ function client.startPlayerCustomization(cb, conf)
     SetNuiFocusKeepInput(false)
     RenderScriptCams(true, false, 0, true, true)
     SetEntityInvincible(cache.ped, Config.InvincibleDuringCustomization)
-    TaskStandStill(cache.ped, -1)
+
+    ClearPedTasksImmediately(cache.ped)
+
+    -- TaskStandStill(cache.ped, -1)
 
     if Config.HideRadar then DisplayRadar(false) end
 
