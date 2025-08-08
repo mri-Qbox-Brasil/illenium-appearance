@@ -292,12 +292,29 @@ local function setPedEyeColor(ped, eyeColor)
 end
 
 local function setPedComponent(ped, component)
-    if component then
-        if isPedFreemodeModel(ped) and (component.component_id == 0 or component.component_id == 2) then
-            return
-        end
+    if not component then return end
 
-        SetPedComponentVariation(ped, component.component_id, component.drawable, component.texture, 0)
+    if not component.collection and isPedFreemodeModel(ped) and (component.component_id == 0 or component.component_id == 2) then
+        return
+    end
+
+    if component.collection then
+        SetPedCollectionComponentVariation(
+            ped,
+            component.component_id,
+            component.collection,
+            component.drawable,
+            component.texture
+        )
+    else
+        -- Modo antigo
+        SetPedComponentVariation(
+            ped,
+            component.component_id,
+            component.drawable,
+            component.texture,
+            0
+        )
     end
 end
 
@@ -310,7 +327,15 @@ local function setPedComponents(ped, components)
 end
 
 local function setPedProp(ped, prop)
-    if prop then
+    if not prop then return end
+
+    if prop.collection then
+        if prop.drawable == -1 then
+            ClearPedProp(ped, prop.prop_id)
+        else
+            SetPedCollectionPropIndex(ped, prop.prop_id, prop.collection, prop.drawable, prop.texture)
+        end
+    else
         if prop.drawable == -1 then
             ClearPedProp(ped, prop.prop_id)
         else

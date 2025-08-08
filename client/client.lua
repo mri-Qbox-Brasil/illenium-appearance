@@ -1,5 +1,64 @@
 local client = client
 local reloadSkinTimer = GetGameTimer()
+local  function ConvertToCollectionFormat(ped, props, components)
+    local result = {
+        props = {},
+        components = {}
+    }
+
+    local collectionsCount = GetPedCollectionsCount(ped)
+    if collectionsCount == 0 then
+        print('Nenhuma coleção encontrada.')
+        return result
+    end
+
+    local collectionName = GetPedCollectionName(ped, 0)
+
+    for _, data in pairs(components) do
+        local componentId = data.component_id
+        local drawable = data.drawable
+        local texture = data.texture
+
+        if drawable ~= -1 then
+            local collection = GetPedCollectionNameFromDrawable(ped, componentId, drawable)
+            local localDrawable = GetPedCollectionLocalIndexFromDrawable(ped, componentId, drawable)
+
+            table.insert(result.components, {
+                collection = collection or collectionName,
+                component_id = componentId,
+                drawable = localDrawable,
+                texture = texture
+            })
+        end
+    end
+
+    for _, data in pairs(props) do
+        local propId = data.prop_id
+        local drawable = data.drawable
+        local texture = data.texture
+
+        if drawable ~= -1 then
+            local collection = GetPedCollectionNameFromPropDrawable(ped, propId, drawable)
+            local localDrawable = GetPedCollectionPropLocalIndexFromDrawable(ped, propId, drawable)
+
+            table.insert(result.props, {
+                collection = collection or collectionName,
+                prop_id = propId,
+                drawable = localDrawable,
+                texture = texture
+            })
+        else
+            table.insert(result.props, {
+                collection = collectionName,
+                prop_id = propId,
+                drawable = -1,
+                texture = -1
+            })
+        end
+    end
+
+    return result
+end
 
 local function LoadPlayerUniform(reset)
     if reset then
@@ -113,6 +172,11 @@ function InitializeCharacter(gender, onSubmit, onCancel)
     TriggerServerEvent("illenium-appearance:server:ChangeRoutingBucket")
     client.startPlayerCustomization(function(appearance)
         if (appearance) then
+            local converted = ConvertToCollectionFormat(cache.ped, appearance.props, appearance.components)
+
+            appearance.props = converted.props
+            appearance.components = converted.components
+
             TriggerServerEvent("illenium-appearance:server:saveAppearance", appearance)
             if onSubmit then
                 onSubmit()
@@ -142,6 +206,11 @@ function OpenShop(config, isPedMenu, shopType)
                 if not isPedMenu then
                     TriggerServerEvent("illenium-appearance:server:chargeCustomer", shopType)
                 end
+                local converted = ConvertToCollectionFormat(cache.ped, appearance.props, appearance.components)
+
+                appearance.props = converted.props
+                appearance.components = converted.components
+
                 TriggerServerEvent("illenium-appearance:server:saveAppearance", appearance)
             else
                 lib.notify({
@@ -673,6 +742,11 @@ RegisterNetEvent("illenium-appearance:client:changeOutfit", function(data)
             }) -- Is a uniform
         else
             local appearance = client.getPedAppearance(cache.ped)
+            local converted = ConvertToCollectionFormat(cache.ped, appearance.props, appearance.components)
+
+            appearance.props = converted.props
+            appearance.components = converted.components
+
             TriggerServerEvent("illenium-appearance:server:saveAppearance", appearance)
         end
         Framework.CachePed()
